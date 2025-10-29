@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Shopping Store - ShopEasy</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">ShopEasy</div>
+
+    <div class="search-filter">
+      <input type="text" id="searchInput" placeholder="Search products..." />
+      <select id="categoryFilter">
+        <option value="all">All Categories</option>
+      </select>
+    </div>
+
+    <div class="cart-icon" id="cartIcon" aria-label="Open cart" title="Open cart">
+      🛒 <span id="cartCount">0</span>
+    </div>
+  </header>
+
+  <section class="offer">
+    Limited Time Offer! Ends in: <span id="timer">05:00</span>
+  </section>
+
+  <main>
+    <div id="productContainer" class="product-container"></div>
+  </main>
+
+  <!-- Product Detail Modal -->
+  <div id="productModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content">
+      <span id="closeModal" class="close" title="Close product details">&times;</span>
+      <img id="modalImage" src="" alt="Product Image" />
+      <h2 id="modalName"></h2>
+      <p id="modalDescription"></p>
+      <p><strong>Price:</strong> <span id="modalPrice"></span></p>
+      <p><strong>Rating:</strong> <span id="modalRating"></span> ⭐</p>
+      <button id="addToCartModal" class="btn-primary">Add to Cart</button>
+    </div>
+  </div>
+
+  <!-- Cart Sidebar -->
+  <aside id="cartSidebar" class="cart-sidebar" aria-hidden="true">
+    <div class="cart-header">
+      <h2>Your Cart</h2>
+      <button id="closeCartSidebar" class="close-sidebar" title="Close cart">&times;</button>
+    </div>
+
+    <ul id="cartItems" class="cart-items"></ul>
+
+    <div class="cart-total">
+      <div><strong>Total:</strong></div>
+      <div class="total-amount">₹<span id="cartTotal">0</span></div>
+    </div>
+
+    <div class="cart-actions">
+      <button id="clearCart" class="btn-outline">Clear Cart</button>
+      <button id="checkout" class="btn-primary">Checkout</button>
+    </div>
+  </aside>
+
+  <script src="script.js"></script>
+</body>
+</html>

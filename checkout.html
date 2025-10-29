@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout - ShopEasy</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: linear-gradient(180deg,#f6fbff,#eef6ff);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 36px 18px;
+    }
+
+    .checkout-wrapper {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .billing-card, .summary-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 18px 40px rgba(12,24,56,0.06);
+    }
+
+    .billing-card h2, .summary-card h2 { margin-bottom: 12px; color: #123064; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .field label { font-size: 0.92rem; color: #333; }
+    .field input, .field textarea, .field select {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #e6eefb;
+      outline: none;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+
+    .flex-row { display: flex; gap: 12px; }
+    .flex-row .field { flex: 1; }
+
+    .summary-list { list-style: none; padding: 0; margin: 0; max-height: 420px; overflow-y: auto; }
+    .summary-item { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px dashed #f1f5ff; }
+    .summary-item img { width: 62px; height: 62px; object-fit: contain; border-radius: 8px; }
+
+    .summary-bottom { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .place-actions { display:flex; gap:12px; margin-top: 16px; }
+
+    .btn {
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg,#0b74ff,#005bb5);
+      color: #fff;
+    }
+    .btn-secondary { background: transparent; border: 1px solid #dbeafe; color: #0b3a8a; }
+
+    /* Notification banner */
+    .notice {
+      background: #eaf3ff;
+      border-left: 5px solid #0b74ff;
+      color: #123064;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    @media (max-width: 980px) {
+      .checkout-wrapper { grid-template-columns: 1fr; padding: 0 6px; }
+      .summary-card { order: 2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="checkout-wrapper">
+    <div class="billing-card">
+      <h2>Billing & Shipping</h2>
+
+      <div id="notice" class="notice"></div>
+
+      <form id="billingForm" autocomplete="on">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input id="name" type="text" required placeholder="Your name" />
+        </div>
+
+        <div class="field">
+          <label for="phone">Mobile number</label>
+          <input id="phone" type="tel" required placeholder="+91" />
+        </div>
+
+        <div class="field">
+          <label for="address">Address</label>
+          <textarea id="address" rows="3" required placeholder="Street, Area, City, State, PIN"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="payment">Payment method</label>
+          <select id="payment" required>
+            <option value="cod">Cash on Delivery (COD)</option>
+            <option value="card">Debit/Credit Card</option>
+            <option value="upi">UPI</option>
+          </select>
+        </div>
+
+        <div id="cardFields" style="display:none;">
+          <div class="flex-row">
+            <div class="field">
+              <label for="cardNo">Card number</label>
+              <input id="cardNo" type="text" placeholder="4242 4242 4242 4242" />
+            </div>
+            <div class="field">
+              <label for="expiry">Expiry</label>
+              <input id="expiry" type="text" placeholder="MM/YY" />
+            </div>
+            <div class="field">
+              <label for="cvv">CVV</label>
+              <input id="cvv" type="text" placeholder="123" />
+            </div>
+          </div>
+        </div>
+
+        <div class="place-actions">
+          <button type="submit" class="btn btn-primary">Place Order</button>
+          <button type="button" id="backToShop" class="btn btn-secondary">Back to Shop</button>
+        </div>
+      </form>
+    </div>
+
+    <aside class="summary-card">
+      <h2>Order Summary</h2>
+      <ul id="checkoutList" class="summary-list"></ul>
+      <div class="summary-bottom">
+        <div>
+          <div style="color:#6b7280">Subtotal</div>
+          <div style="font-weight:700; font-size:1.1rem">₹<span id="checkoutSubtotal">0.00</span></div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:#6b7280">Shipping</div>
+          <div style="font-weight:700; font-size:1.1rem">₹<span id="checkoutShipping">0.00</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:800; font-size:1.15rem">Total</div>
+        <div style="font-weight:900; font-size:1.2rem">₹<span id="checkoutTotal">0.00</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const INR_RATE = 82;
+    const checkoutList = document.getElementById("checkoutList");
+    const checkoutSubtotal = document.getElementById("checkoutSubtotal");
+    const checkoutShipping = document.getElementById("checkoutShipping");
+    const checkoutTotal = document.getElementById("checkoutTotal");
+    const billingForm = document.getElementById("billingForm");
+    const backToShop = document.getElementById("backToShop");
+    const paymentSelect = document.getElementById("payment");
+    const cardFields = document.getElementById("cardFields");
+    const notice = document.getElementById("notice");
+
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    function showNotice(msg) {
+      notice.textContent = msg;
+      notice.style.display = "block";
+      setTimeout(() => (notice.style.display = "none"), 4000);
+    }
+
+    function formatINR(val) {
+      return Number(val).toFixed(2);
+    }
+
+    function renderCheckout() {
+      checkoutList.innerHTML = "";
+      let subtotalINR = 0;
+      cart.forEach(item => {
+        const priceINR = Number(item.priceUSD) * INR_RATE;
+        const itemTotal = priceINR * item.quantity;
+        subtotalINR += itemTotal;
+
+        const li = document.createElement("li");
+        li.className = "summary-item";
+        li.innerHTML = `
+          <img src="${item.image}" alt="${item.title}">
+          <div style="flex:1;">
+            <div style="font-weight:700">${item.title.length>48?item.title.slice(0,48)+"…":item.title}</div>
+            <div style="color:#6b7280; font-size:0.95rem">₹${formatINR(priceINR)} × ${item.quantity}</div>
+          </div>
+          <div style="font-weight:800">₹${formatINR(itemTotal)}</div>
+        `;
+        checkoutList.appendChild(li);
+      });
+
+      let shipping = subtotalINR >= 2000 || subtotalINR === 0 ? 0 : 50;
+      checkoutSubtotal.textContent = formatINR(subtotalINR);
+      checkoutShipping.textContent = formatINR(shipping);
+      checkoutTotal.textContent = formatINR(subtotalINR + shipping);
+    }
+
+    renderCheckout();
+
+    paymentSelect.addEventListener('change', () => {
+      cardFields.style.display = paymentSelect.value === 'card' ? 'block' : 'none';
+    });
+
+    billingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!cart || cart.length === 0) {
+        showNotice("Your cart is empty. Add items to place an order.");
+        setTimeout(() => (window.location.href = "index.html"), 2000);
+        return;
+      }
+
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const address = document.getElementById('address').value.trim();
+      if (!name || !phone || !address) {
+        showNotice("Please fill name, phone and address.");
+        return;
+      }
+
+      if (paymentSelect.value === 'card') {
+        const cardNo = document.getElementById('cardNo').value.trim();
+        const expiry = document.getElementById('expiry').value.trim();
+        const cvv = document.getElementById('cvv').value.trim();
+        if (cardNo.length < 12 || cvv.length < 3) {
+          showNotice("Please enter valid card details.");
+          return;
+        }
+      }
+
+      // Success message (non-popup)
+      showNotice("✅ Order placed successfully! Redirecting...");
+      localStorage.removeItem("cart");
+      setTimeout(() => (window.location.href = "index.html"), 2500);
+    });
+
+    backToShop.addEventListener('click', () => {
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
