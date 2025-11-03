@@ -48,6 +48,7 @@ header {
   box-shadow: var(--shadow);
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 18px;
+  flex-wrap: wrap; /* allow wrapping for small screens */
 }
 
 .logo {
@@ -55,6 +56,7 @@ header {
   font-weight: 700;
   letter-spacing: 1px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .search-filter {
@@ -64,6 +66,7 @@ header {
   flex: 1;
   justify-content: center;
   max-width: 760px;
+  min-width: 220px;
 }
 
 .search-filter input,
@@ -78,6 +81,7 @@ header {
   width: 100%;
   max-width: 420px;
   box-shadow: 0 6px 18px rgba(16, 40, 80, 0.06);
+  min-width: 0;
 }
 
 .cart-icon {
@@ -85,6 +89,7 @@ header {
   font-size: 1.45rem;
   cursor: pointer;
   user-select: none;
+  white-space: nowrap;
 }
 
 #cartCount {
@@ -170,6 +175,7 @@ main {
   font-size: 0.92rem;
 }
 
+/* card meta holds price + actions */
 .card-meta {
   display: flex;
   justify-content: space-between;
@@ -182,6 +188,13 @@ main {
   font-weight: 700;
   font-size: 1.05rem;
   color: #1b3a8a;
+}
+
+/* ensure button group is styled consistently */
+.btn-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .product-card .btn {
@@ -227,12 +240,14 @@ main {
 .modal-content {
   background: #fff;
   border-radius: 16px;
-  padding: 24px;
+  padding: 18px;
   max-width: 640px;
   width: 100%;
   box-shadow: 0 20px 60px rgba(6, 18, 46, 0.12);
   animation: popIn 0.28s ease;
   position: relative;
+  max-height: calc(100vh - 100px); /* reduce height so buttons visible */
+  overflow-y: auto; /* allow scrolling inside modal if content is tall */
 }
 
 @keyframes popIn {
@@ -241,15 +256,18 @@ main {
 }
 
 .modal-content img {
-  width: 260px;
+  width: auto;
+  max-width: 260px;
+  max-height: 220px;
   object-fit: contain;
   margin: 0 auto 12px;
+  display: block;
 }
 
 .close {
   position: absolute;
-  top: 14px;
-  right: 18px;
+  top: 10px;
+  right: 12px;
   font-size: 1.6rem;
   cursor: pointer;
   color: #333;
@@ -350,6 +368,17 @@ main {
   flex-direction: column;
 }
 
+/* No products message */
+.no-products {
+  padding: 36px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  text-align: center;
+  color: #123;
+  font-weight: 700;
+}
+
 /* ===============================
    FOOTER / UTIL
 ==================================*/
@@ -376,12 +405,11 @@ main {
   .product-card img { height: 160px; }
 }
 
-/* Mobile */
+/* Mobile: improved header layout + button stacking + modal fix */
 @media (max-width: 600px) {
   header {
-    display: flex;
+    /* put logo + cart on first row, search below on full width */
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
     border-radius: 0 0 12px 12px;
@@ -389,19 +417,25 @@ main {
 
   .logo {
     font-size: 1.4rem;
-  }
-
-  .search-filter {
-    flex: 1;
-    padding: 0 8px;
-    gap: 6px;
-    flex-direction: column;
-    max-width: 100%;
+    order: 1;
+    margin-right: 8px;
   }
 
   .cart-icon {
     margin-left: auto;
-    order: 3;
+    order: 1;
+  }
+
+  /* search filter placed under the top row, full width and horizontal layout */
+  .search-filter {
+    order: 2;
+    width: 100%;
+    justify-content: space-between;
+    padding: 10px 0 0 0;
+    gap: 8px;
+  }
+  .search-filter input, .search-filter select {
+    max-width: calc(50% - 8px);
   }
 
   .product-container {
@@ -418,6 +452,21 @@ main {
     height: 130px;
   }
 
+  /* stack actions under price on narrow screens */
+  .card-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .card-meta .price {
+    margin-bottom: 6px;
+  }
+  .btn-group {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
   .cart-sidebar {
     width: 100%;
     right: -110%;
@@ -429,5 +478,16 @@ main {
 
   .cart-sidebar.open {
     right: 0;
+  }
+
+  /* make modal fit better on small screens */
+  .modal-content {
+    max-width: 560px;
+    padding: 14px;
+    max-height: calc(100vh - 80px);
+  }
+  .modal-content img {
+    max-width: 180px;
+    max-height: 180px;
   }
 }
