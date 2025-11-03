@@ -74,9 +74,19 @@ fetchProducts();
 // Display products
 function displayProducts(items) {
   productContainer.innerHTML = "";
+
+  if (!items || items.length === 0) {
+    const no = document.createElement("div");
+    no.className = "no-products";
+    no.textContent = "No products found.";
+    productContainer.appendChild(no);
+    return;
+  }
+
   items.forEach(p => {
     const div = document.createElement("div");
     div.classList.add("product-card");
+    div.setAttribute('tabindex', '0'); // accessible
     const priceINR = toINR(p.price);
     div.innerHTML = `
       <div class="img-wrap">
@@ -86,7 +96,7 @@ function displayProducts(items) {
       <p class="muted">${p.category}</p>
       <div class="card-meta">
         <div class="price">₹${priceINR}</div>
-        <div style="display:flex; gap:8px;">
+        <div class="btn-group">
           <button class="btn btn-primary" onclick="addToCart(${p.id}); event.stopPropagation();">Add</button>
           <button class="btn btn-outline" onclick="openModalById(${p.id}); event.stopPropagation();">Details</button>
         </div>
@@ -137,10 +147,12 @@ function openModal(product) {
   modal.style.display = "flex";
   modal.setAttribute("aria-hidden", "false");
   document.getElementById("modalImage").src = product.image;
+  document.getElementById("modalImage").alt = product.title;
   document.getElementById("modalName").textContent = product.title;
   document.getElementById("modalDescription").textContent = product.description;
   document.getElementById("modalPrice").textContent = `₹${toINR(product.price)}`;
   document.getElementById("modalRating").textContent = product.rating?.rate ?? "—";
+  // attach the add handler
   addToCartModal.onclick = () => {
     addToCart(product.id);
     closeProductModal();
@@ -255,6 +267,10 @@ const timerInterval = setInterval(() => {
   }
 }, 1000);
 
+// ensure dynamically-created product cards are tabbable immediately
+// (we now set tabindex when creating cards, so this is kept for compatibility)
 window.addEventListener('load', () => {
-  document.querySelectorAll('.product-card').forEach(c => c.setAttribute('tabindex','0'));
+  document.querySelectorAll('.product-card').forEach(c => {
+    if (!c.hasAttribute('tabindex')) c.setAttribute('tabindex','0');
+  });
 });
