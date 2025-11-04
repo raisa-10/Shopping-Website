@@ -17,13 +17,50 @@
       </select>
     </div>
 
-    <div class="cart-icon" id="cartIcon" aria-label="Open cart" title="Open cart">
-      🛒 <span id="cartCount">0</span>
+    <div class="header-actions">
+      <div class="wishlist-icon" id="wishlistIcon" aria-label="Open wishlist" title="Open wishlist">
+        ❤️ <span id="wishlistCount">0</span>
+      </div>
+      <div class="cart-icon" id="cartIcon" aria-label="Open cart" title="Open cart">
+        🛒 <span id="cartCount">0</span>
+      </div>
     </div>
   </header>
 
   <section class="offer">
     Limited Time Offer! Ends in: <span id="timer">05:00</span>
+  </section>
+
+  <!-- Special Offers Banner -->
+  <section class="offers-banner">
+    <div class="offer-card">
+      <div class="offer-icon">🎉</div>
+      <div class="offer-text">
+        <strong>Flat 20% OFF</strong>
+        <span>On orders above ₹2000</span>
+      </div>
+    </div>
+    <div class="offer-card">
+      <div class="offer-icon">🚚</div>
+      <div class="offer-text">
+        <strong>Free Shipping</strong>
+        <span>On orders above ₹2000</span>
+      </div>
+    </div>
+    <div class="offer-card">
+      <div class="offer-icon">💳</div>
+      <div class="offer-text">
+        <strong>10% Cashback</strong>
+        <span>On UPI payments</span>
+      </div>
+    </div>
+    <div class="offer-card">
+      <div class="offer-icon">🎁</div>
+      <div class="offer-text">
+        <strong>Buy 2 Get 1</strong>
+        <span>On selected items</span>
+      </div>
+    </div>
   </section>
 
   <main>
@@ -39,7 +76,24 @@
       <p id="modalDescription"></p>
       <p><strong>Price:</strong> <span id="modalPrice"></span></p>
       <p><strong>Rating:</strong> <span id="modalRating"></span> ⭐</p>
-      <button id="addToCartModal" class="btn-primary">Add to Cart</button>
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button id="addToCartModal" class="btn-primary">Add to Cart</button>
+        <button id="addToWishlistModal" class="btn-outline">Add to Wishlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quantity Modal -->
+  <div id="quantityModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <span id="closeQuantityModal" class="close" title="Close">&times;</span>
+      <h2 style="margin-bottom: 20px;">Select Quantity</h2>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+        <button id="decreaseQty" class="btn-outline" style="font-size: 1.5rem; padding: 10px 20px;">-</button>
+        <input type="number" id="quantityInput" value="1" min="1" style="width: 80px; text-align: center; font-size: 1.2rem; padding: 10px; border: 2px solid #0b74ff; border-radius: 10px;" />
+        <button id="increaseQty" class="btn-outline" style="font-size: 1.5rem; padding: 10px 20px;">+</button>
+      </div>
+      <button id="confirmAddToCart" class="btn-primary" style="width: 100%; padding: 12px;">Add to Cart</button>
     </div>
   </div>
 
@@ -52,14 +106,43 @@
 
     <ul id="cartItems" class="cart-items"></ul>
 
+    <!-- Offer Applied Notice -->
+    <div id="offerNotice" class="offer-notice" style="display: none;">
+      <span class="offer-badge">🎉 Offer Applied!</span>
+      <span id="offerText"></span>
+    </div>
+
     <div class="cart-total">
+      <div><strong>Subtotal:</strong></div>
+      <div class="total-amount">₹<span id="cartSubtotal">0</span></div>
+    </div>
+    <div class="cart-total" id="discountRow" style="display: none; color: #16a34a;">
+      <div><strong>Discount (20%):</strong></div>
+      <div class="total-amount">-₹<span id="cartDiscount">0</span></div>
+    </div>
+    <div class="cart-total" style="border-top: 2px solid #0b74ff; padding-top: 12px;">
       <div><strong>Total:</strong></div>
-      <div class="total-amount">₹<span id="cartTotal">0</span></div>
+      <div class="total-amount" style="font-size: 1.35rem;">₹<span id="cartTotal">0</span></div>
     </div>
 
     <div class="cart-actions">
       <button id="clearCart" class="btn-outline">Clear Cart</button>
       <button id="checkout" class="btn-primary">Checkout</button>
+    </div>
+  </aside>
+
+  <!-- Wishlist Sidebar -->
+  <aside id="wishlistSidebar" class="cart-sidebar" aria-hidden="true">
+    <div class="cart-header">
+      <h2>Your Wishlist ❤️</h2>
+      <button id="closeWishlistSidebar" class="close-sidebar" title="Close wishlist">&times;</button>
+    </div>
+
+    <ul id="wishlistItems" class="cart-items"></ul>
+
+    <div class="cart-actions">
+      <button id="clearWishlist" class="btn-outline">Clear Wishlist</button>
+      <button id="moveAllToCart" class="btn-primary">Move All to Cart</button>
     </div>
   </aside>
 
