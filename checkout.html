@@ -73,7 +73,6 @@
     }
     .btn-secondary { background: transparent; border: 1px solid #dbeafe; color: #0b3a8a; }
 
-    /* Notification banner */
     .notice {
       background: #eaf3ff;
       border-left: 5px solid #0b74ff;
@@ -83,6 +82,43 @@
       font-weight: 600;
       margin-bottom: 12px;
       display: none;
+    }
+
+    .offer-applied {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      color: #fff;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(67, 233, 123, 0.3);
+    }
+
+    .offer-applied .icon {
+      font-size: 1.5rem;
+    }
+
+    .discount-row {
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed #f1f5ff;
+    }
+
+    .summary-row.total {
+      border-top: 2px solid #0b74ff;
+      border-bottom: none;
+      padding-top: 12px;
+      margin-top: 8px;
+      font-size: 1.15rem;
+      font-weight: 800;
     }
 
     @media (max-width: 980px) {
@@ -119,7 +155,7 @@
           <select id="payment" required>
             <option value="cod">Cash on Delivery (COD)</option>
             <option value="card">Debit/Credit Card</option>
-            <option value="upi">UPI</option>
+            <option value="upi">UPI (10% Cashback)</option>
           </select>
         </div>
 
@@ -140,6 +176,13 @@
           </div>
         </div>
 
+        <div id="upiFields" style="display:none;">
+          <div class="field">
+            <label for="upiId">UPI ID</label>
+            <input id="upiId" type="text" placeholder="yourname@upi" />
+          </div>
+        </div>
+
         <div class="place-actions">
           <button type="submit" class="btn btn-primary">Place Order</button>
           <button type="button" id="backToShop" class="btn btn-secondary">Back to Shop</button>
@@ -149,21 +192,40 @@
 
     <aside class="summary-card">
       <h2>Order Summary</h2>
-      <ul id="checkoutList" class="summary-list"></ul>
-      <div class="summary-bottom">
+      
+      <div id="offerApplied" class="offer-applied" style="display: none;">
+        <span class="icon">🎉</span>
         <div>
-          <div style="color:#6b7280">Subtotal</div>
-          <div style="font-weight:700; font-size:1.1rem">₹<span id="checkoutSubtotal">0.00</span></div>
-        </div>
-        <div style="text-align:right">
-          <div style="color:#6b7280">Shipping</div>
-          <div style="font-weight:700; font-size:1.1rem">₹<span id="checkoutShipping">0.00</span></div>
+          <strong>Offer Applied!</strong>
+          <div style="font-size: 0.9rem; opacity: 0.95;" id="offerDescription"></div>
         </div>
       </div>
 
-      <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-weight:800; font-size:1.15rem">Total</div>
-        <div style="font-weight:900; font-size:1.2rem">₹<span id="checkoutTotal">0.00</span></div>
+      <ul id="checkoutList" class="summary-list"></ul>
+      
+      <div class="summary-row">
+        <div style="color:#6b7280">Subtotal</div>
+        <div style="font-weight:700;">₹<span id="checkoutSubtotal">0.00</span></div>
+      </div>
+
+      <div class="summary-row discount-row" id="discountRow" style="display: none;">
+        <div>Discount (20%)</div>
+        <div>-₹<span id="checkoutDiscount">0.00</span></div>
+      </div>
+
+      <div class="summary-row" id="cashbackRow" style="display: none; color: #16a34a;">
+        <div>UPI Cashback (10%)</div>
+        <div>₹<span id="checkoutCashback">0.00</span></div>
+      </div>
+
+      <div class="summary-row">
+        <div style="color:#6b7280">Shipping</div>
+        <div style="font-weight:700;">₹<span id="checkoutShipping">0.00</span></div>
+      </div>
+
+      <div class="summary-row total">
+        <div>Total</div>
+        <div style="font-size:1.3rem; color: #0b3a8a;">₹<span id="checkoutTotal">0.00</span></div>
       </div>
     </aside>
   </div>
@@ -172,12 +234,19 @@
     const INR_RATE = 82;
     const checkoutList = document.getElementById("checkoutList");
     const checkoutSubtotal = document.getElementById("checkoutSubtotal");
+    const checkoutDiscount = document.getElementById("checkoutDiscount");
+    const checkoutCashback = document.getElementById("checkoutCashback");
     const checkoutShipping = document.getElementById("checkoutShipping");
     const checkoutTotal = document.getElementById("checkoutTotal");
+    const discountRow = document.getElementById("discountRow");
+    const cashbackRow = document.getElementById("cashbackRow");
+    const offerApplied = document.getElementById("offerApplied");
+    const offerDescription = document.getElementById("offerDescription");
     const billingForm = document.getElementById("billingForm");
     const backToShop = document.getElementById("backToShop");
     const paymentSelect = document.getElementById("payment");
     const cardFields = document.getElementById("cardFields");
+    const upiFields = document.getElementById("upiFields");
     const notice = document.getElementById("notice");
 
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -213,16 +282,62 @@
         checkoutList.appendChild(li);
       });
 
+      // Calculate discount (20% off on orders above ₹2000)
+      let discount = 0;
+      let offerText = "";
+      if (subtotalINR >= 2000) {
+        discount = subtotalINR * 0.20;
+        discountRow.style.display = "flex";
+        offerApplied.style.display = "flex";
+        offerText = "You saved 20% on your order!";
+      } else {
+        discountRow.style.display = "none";
+        offerApplied.style.display = "none";
+      }
+
+      // Calculate shipping (free on orders above ₹2000)
       let shipping = subtotalINR >= 2000 || subtotalINR === 0 ? 0 : 50;
+      if (subtotalINR >= 2000) {
+        offerText += " Free shipping included.";
+      }
+
+      offerDescription.textContent = offerText;
+
+      const afterDiscount = subtotalINR - discount;
+      const total = afterDiscount + shipping;
+
       checkoutSubtotal.textContent = formatINR(subtotalINR);
+      checkoutDiscount.textContent = formatINR(discount);
       checkoutShipping.textContent = formatINR(shipping);
-      checkoutTotal.textContent = formatINR(subtotalINR + shipping);
+      checkoutTotal.textContent = formatINR(total);
     }
 
     renderCheckout();
 
     paymentSelect.addEventListener('change', () => {
-      cardFields.style.display = paymentSelect.value === 'card' ? 'block' : 'none';
+      if (paymentSelect.value === 'card') {
+        cardFields.style.display = 'block';
+        upiFields.style.display = 'none';
+        cashbackRow.style.display = 'none';
+      } else if (paymentSelect.value === 'upi') {
+        cardFields.style.display = 'none';
+        upiFields.style.display = 'block';
+        // Show UPI cashback
+        let subtotalINR = 0;
+        cart.forEach(item => {
+          const priceINR = Number(item.priceUSD) * INR_RATE;
+          subtotalINR += priceINR * item.quantity;
+        });
+        const discount = subtotalINR >= 2000 ? subtotalINR * 0.20 : 0;
+        const afterDiscount = subtotalINR - discount;
+        const cashback = afterDiscount * 0.10;
+        checkoutCashback.textContent = formatINR(cashback);
+        cashbackRow.style.display = "flex";
+      } else {
+        cardFields.style.display = 'none';
+        upiFields.style.display = 'none';
+        cashbackRow.style.display = 'none';
+      }
     });
 
     billingForm.addEventListener('submit', (e) => {
@@ -251,7 +366,15 @@
         }
       }
 
-      // Success message (non-popup)
+      if (paymentSelect.value === 'upi') {
+        const upiId = document.getElementById('upiId').value.trim();
+        if (!upiId || !upiId.includes('@')) {
+          showNotice("Please enter a valid UPI ID.");
+          return;
+        }
+      }
+
+      // Success message
       showNotice("✅ Order placed successfully! Redirecting...");
       localStorage.removeItem("cart");
       setTimeout(() => (window.location.href = "index.html"), 2500);
